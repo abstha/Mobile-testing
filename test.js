@@ -283,9 +283,7 @@ async function usageTest() {
     const type = await driver.$(
       'android=new UiSelector().resourceId("com.android.chrome:id/search_box_text")'
     );
-    await type.setValue(
-      "https://www.youtube.com/watch?v=8PnnCRYteIg&pp=ygUPdW5yZXF1aXRlZCBsb3Zl"
-    );
+    await type.setValue("https://youtu.be/dQw4w9WgXcQ?si=EXpstIswmVT1Y8F0");
     await driver.pressKeyCode(66);
 
     // Wait for the video to play for 60 seconds

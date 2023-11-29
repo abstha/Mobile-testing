@@ -62,6 +62,21 @@ const wdOptsforNcell = {
   capabilities: ncellCaps,
 };
 
+const dataCaps = {
+  platformName: "Android",
+  "appium:appPackage": "",
+  "appium:appActivity": "",
+  "appium:deviceName": "samsung SM-G611F",
+  "appium:automationName": "UiAutomator2",
+};
+
+const wdOptforData = {
+  hostname: process.nextTick.APPIUM_HOST || "localhost",
+  port: parseInt(process.env.APPIUM_PORT, 10) || 4723,
+  loglevel: "info",
+  capabilities: dataCaps,
+};
+
 //buys the data pack via USSD
 async function buyDataPack() {
   const driver = await remote(wdOptsForDialer);
@@ -117,6 +132,73 @@ async function buyDataPack() {
       'android=new UiSelector().resourceId("android:id/button1")'
     );
     await cl2.click();
+
+    const ok = await driver.$('//*[contains(@text,"Okay")]');
+    await ok.click();
+  } catch (error) {
+    console.error(`Error in buyDataPack: ${error.message}`);
+  } finally {
+    await driver.deleteSession();
+  }
+}
+
+async function buyDataPack2() {
+  const driver = await remote(wdOptsForDialer);
+
+  try {
+    const number = "*17123#";
+
+    const digitMapping = {
+      1: "one",
+      "*": "star",
+      "#": "pound",
+      2: "two",
+      3: "three",
+      4: "four",
+      5: "five",
+      6: "six",
+      7: "seven",
+      8: "eight",
+      9: "nine",
+      0: "zero",
+    };
+
+    for (let i = 0; i < number.length; i++) {
+      const digit = number[i];
+      const elementId = digitMapping[digit];
+
+      const element = await driver.$(
+        `android=new UiSelector().resourceId("com.samsung.android.dialer:id/${elementId}")`
+      );
+      await element.click();
+    }
+    const call = await driver.$(
+      'android=new UiSelector().resourceId("com.samsung.android.dialer:id/dialButtonImage")'
+    );
+    await call.click();
+
+    const num = await driver.$(
+      'android=new UiSelector().resourceId("com.android.phone:id/input_field")'
+    );
+    await num.setValue("2");
+
+    const cl = await driver.$(
+      'android=new UiSelector().resourceId("android:id/button1")'
+    );
+    await cl.click();
+
+    const num2 = await driver.$(
+      'android=new UiSelector().resourceId("com.android.phone:id/input_field")'
+    );
+    await num2.setValue("2");
+
+    const cl2 = await driver.$(
+      'android=new UiSelector().resourceId("android:id/button1")'
+    );
+    await cl2.click();
+
+    const ok = await driver.$('//*[contains(@text,"Okay")]');
+    await ok.click();
   } catch (error) {
     console.error(`Error in buyDataPack: ${error.message}`);
   } finally {
@@ -295,14 +377,27 @@ async function usageTest() {
     const got = await driver.$('//*[contains(@text,"Got it")]');
     await got.click();
 
+    await driver.touchPerform([
+      { action: "press", options: { x: 321, y: 3 } },
+      { action: "moveTo", options: { x: 321, y: 1166 } },
+      { action: "release" },
+    ]);
+
+    const xpath =
+      "/hierarchy/android.widget.FrameLayout/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.LinearLayout[2]/android.widget.LinearLayout/android.widget.LinearLayout[3]";
+    const element = await driver.$(xpath);
+    await element.click();
+
+    await driver.back();
+
     const type = await driver.$(
       'android=new UiSelector().resourceId("com.android.chrome:id/search_box_text")'
     );
     await type.setValue("https://youtu.be/dQw4w9WgXcQ?si=EXpstIswmVT1Y8F0");
     await driver.pressKeyCode(66);
 
-    // Wait for the video to play for 60 seconds
-    await driver.pause(60000);
+    // Wait for the video to play for 45 seconds
+    await driver.pause(45000);
   } catch (error) {
     console.error("Error:", error);
   } finally {
@@ -335,8 +430,10 @@ async function NcellApp() {
     const deny = await driver.$('//*[contains(@text, "Deny")]');
     await deny.click();
 
-    const myPack = await driver.$('//*[contains(@text, "My Packs")]');
-    await myPack.click();
+    const xpathExpression =
+      "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.view.ViewGroup/android.view.ViewGroup/android.view.ViewGroup/android.view.ViewGroup/android.view.ViewGroup/android.view.ViewGroup/android.view.ViewGroup/android.view.ViewGroup[5]/android.view.ViewGroup/android.view.ViewGroup[2]/android.widget.TextView"; // Replace with your XPath
+    const element = await driver.$(xpathExpression);
+    await element.click();
 
     const data = await driver.$('//*[contains(@text, "Data")]');
     await data.click();
@@ -361,6 +458,8 @@ if (process.argv[2] === "otp") {
   usageTest();
 } else if (process.argv[2] === "Ncell") {
   NcellApp();
+} else if (process.argv[3] == " buyDataPack2") {
+  buyDataPack2();
 } else {
   console.error('Invalid argument. Use "otp" or "balance" or "buyDataPack".');
 }
